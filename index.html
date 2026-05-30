@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>White Picket Realty — Activity Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,400&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:#1660ab; --blue-dark:#0f4d87; --blue-light:#2272c3;
+  --blue-pale:#e8f1fb; --blue-mid:#cce0f5; --blue-alpha:rgba(22,96,171,0.10);
+  --gray:#606060; --gray-light:#9a9a9a; --gray-pale:#f4f6f8;
+  --white:#ffffff; --border:#dce8f4; --text:#1e2226; --text-muted:#606060;
+  --green:#2a8c52; --red:#c94040;
+  --shadow:0 1px 8px rgba(22,96,171,0.09);
+  --shadow-md:0 4px 20px rgba(22,96,171,0.13);
+  --r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:#eef3f9;font-family:'Nunito',sans-serif;color:var(--text);}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,#eef3f9 60%,#d6e8f8);}
+.login-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:36px 28px 32px;width:100%;max-width:380px;box-shadow:var(--shadow-md);text-align:center;}
+.login-logo{display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
+.login-logo h1{font-family:'Lora',serif;font-size:1.5rem;font-weight:700;color:var(--blue);line-height:1.2;}
+.login-sub{font-size:0.7rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gray-light);margin-bottom:28px;}
+.login-label{font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);text-align:left;margin-bottom:6px;display:block;}
+.login-input{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'Lora',serif;font-size:1rem;color:var(--text);outline:none;transition:border-color .2s;margin-bottom:20px;}
+.login-input:focus{border-color:var(--blue);}
+.login-btn{width:100%;padding:13px;background:var(--blue);color:var(--white);border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.login-btn:active{background:var(--blue-dark);}
+.login-error{font-size:0.78rem;color:var(--red);margin-top:-12px;margin-bottom:14px;text-align:left;}
+
+/* ── APP ── */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+.hidden{display:none!important;}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--blue);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(22,96,171,0.25);}
+.topbar-inner{display:flex;align-items:center;gap:10px;padding:0 16px;height:56px;max-width:640px;margin:0 auto;}
+.topbar-brand{flex:1;min-width:0;}
+.topbar-brand h2{font-family:'Lora',serif;font-size:1rem;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topbar-brand span{font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.55);display:block;margin-top:1px;}
+.topbar-agent{font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
+.topbar-logout{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:var(--white);padding:6px 11px;border-radius:6px;font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:background .2s;flex-shrink:0;}
+.topbar-logout:hover{background:rgba(255,255,255,0.25);}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--white);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);}
+.bottom-nav-btn{flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--gray-light);font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;transition:color .15s;}
+.bottom-nav-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.bottom-nav-btn.active{color:var(--blue);}
+
+/* ── PAGE CONTENT ── */
+.page-content{flex:1;padding:16px 16px calc(72px + env(safe-area-inset-bottom,0px));max-width:640px;margin:0 auto;width:100%;}
+.page{display:none;}
+.page.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SECTION TITLE ── */
+.sec-title{font-family:'Lora',serif;font-size:1.05rem;font-weight:700;color:var(--blue);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
+.sec-pill{font-size:0.58rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;background:var(--blue-pale);color:var(--blue);border:1px solid var(--blue-mid);border-radius:20px;padding:2px 8px;}
+
+/* ── SUMMARY CARDS ── */
+.sum-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.sum-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 14px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.sum-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);}
+.sum-val{font-family:'Lora',serif;font-size:1.9rem;font-weight:700;color:var(--blue);line-height:1;}
+.sum-lbl{font-size:0.62rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--gray);margin-top:4px;}
+
+/* ── ACTIVITY CARDS ── */
+.act-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.act-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 14px 12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;}
+.act-lbl{font-size:0.82rem;font-weight:600;color:var(--text);flex:1;}
+.stepper{display:flex;align-items:center;}
+.stp-btn{width:38px;height:38px;background:var(--blue-pale);border:1.5px solid var(--blue-mid);color:var(--blue);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;line-height:1;}
+.stp-btn:first-child{border-radius:7px 0 0 7px;}
+.stp-btn:last-child{border-radius:0 7px 7px 0;}
+.stp-btn:active{background:var(--blue);color:var(--white);border-color:var(--blue);}
+.stp-minus:active{background:#c94040;border-color:#c94040;color:var(--white);}
+.stp-input{width:52px;height:38px;border:1.5px solid var(--blue-mid);border-left:none;border-right:none;background:var(--white);font-family:'Lora',serif;font-size:1.15rem;font-weight:700;color:var(--blue);text-align:center;outline:none;}
+
+/* ── SUBMIT ── */
+.submit-row{display:flex;gap:10px;align-items:center;margin-bottom:28px;}
+.btn-primary{flex:1;padding:14px;background:var(--blue);color:var(--white);border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.btn-primary:active{background:var(--blue-dark);}
+.btn-ghost{padding:14px 18px;background:var(--white);color:var(--gray);border:1px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;}
+.btn-ghost:active{border-color:var(--blue-mid);color:var(--blue);}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--white);padding:9px 18px;border-radius:30px;font-size:0.78rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+.toast.show{opacity:1;}
+
+/* ── SCORE TABLE ── */
+.score-tabs{display:flex;gap:4px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:12px;}
+.stab{flex:1;padding:7px 4px;border-radius:6px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-size:0.67rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gray);background:transparent;transition:all .2s;}
+.stab.active{background:var(--blue);color:var(--white);}
+.score-tbl{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px;}
+.score-tbl th{font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--white);background:var(--blue);padding:10px 12px;text-align:left;}
+.score-tbl td{padding:11px 12px;border-bottom:1px solid #edf3fb;font-size:0.83rem;}
+.score-tbl tr:last-child td{border-bottom:none;}
+.score-tbl tbody tr:hover td{background:var(--blue-pale);}
+.bar-wrap{display:flex;align-items:center;justify-content:flex-end;gap:8px;}
+.bar-track{width:50px;height:4px;background:var(--blue-pale);border-radius:2px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .5s;}
+
+/* ── CONV GRID ── */
+.conv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:24px;}
+.conv-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:13px;box-shadow:var(--shadow);}
+.conv-lbl{font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;}
+.conv-val{font-family:'Lora',serif;font-size:1.4rem;font-weight:700;color:var(--blue);}
+.conv-sub{font-size:0.67rem;color:var(--gray-light);margin-top:1px;}
+
+/* ── LOG ── */
+.log-list{display:flex;flex-direction:column;gap:7px;max-height:320px;overflow-y:auto;}
+.log-item{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;}
+.log-agent{font-size:0.75rem;font-weight:700;color:var(--blue);white-space:nowrap;min-width:80px;}
+.log-right{flex:1;min-width:0;}
+.log-time{font-size:0.65rem;color:var(--gray-light);}
+.log-text{font-size:0.73rem;color:var(--gray);margin-top:1px;line-height:1.4;}
+.log-text b{color:var(--blue);font-weight:700;}
+.log-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:1rem;padding:0 2px;margin-left:4px;flex-shrink:0;transition:color .15s;}
+.log-del:hover{color:var(--red);}
+
+/* ── TEAM ── */
+.team-banner{background:var(--blue);border-radius:var(--r);padding:18px 18px 16px;margin-bottom:14px;box-shadow:var(--shadow-md);}
+.team-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.tb-item .tv{font-family:'Lora',serif;font-size:1.8rem;font-weight:700;color:var(--white);line-height:1;}
+.tb-item .tl{font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-top:4px;}
+.lb-search{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.88rem;outline:none;margin-bottom:10px;color:var(--text);}
+.lb-search:focus{border-color:var(--blue);}
+.lb-tabs{display:flex;gap:4px;margin-bottom:14px;}
+.lbtab{font-family:'Nunito',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:7px 12px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--gray);cursor:pointer;transition:all .2s;}
+.lbtab.active{background:var(--blue);color:var(--white);border-color:var(--blue);}
+.agent-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.ag-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
+.ag-header{display:flex;align-items:center;padding:12px 14px;gap:10px;cursor:pointer;user-select:none;}
+.ag-rank{font-family:'Lora',serif;font-size:1.1rem;font-weight:700;color:var(--blue-mid);min-width:28px;}
+.ag-rank.r1{color:#c9a84c;}.ag-rank.r2{color:#9ba7b4;}.ag-rank.r3{color:#b87d4b;}
+.ag-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:0.85rem;font-weight:700;color:var(--white);flex-shrink:0;}
+.ag-info{flex:1;min-width:0;}
+.ag-name{font-size:0.9rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ag-sub{font-size:0.65rem;color:var(--gray-light);margin-top:1px;}
+.ag-score{text-align:right;flex-shrink:0;}
+.ag-total{font-family:'Lora',serif;font-size:1.3rem;font-weight:700;color:var(--blue);}
+.ag-slbl{font-size:0.58rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--gray-light);}
+.ag-chev{color:var(--blue-mid);transition:transform .2s;font-size:0.8rem;margin-left:4px;}
+.ag-card.open .ag-chev{transform:rotate(180deg);}
+.ag-detail{display:none;border-top:1px solid var(--border);padding:12px 14px;background:var(--blue-pale);}
+.ag-card.open .ag-detail{display:block;}
+.ag-dgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.ag-di{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:9px 10px;}
+.ag-dv{font-family:'Lora',serif;font-size:1.1rem;font-weight:700;color:var(--blue);}
+.ag-dl{font-size:0.58rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--gray);margin-top:2px;}
+
+/* ── LEADERS ── */
+.leaders-hero{background:var(--blue);border-radius:var(--r);padding:18px;margin-bottom:16px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:14px;}
+.leaders-hero-icon{font-size:2rem;line-height:1;flex-shrink:0;}
+.leaders-hero-text h3{font-family:'Lora',serif;font-size:1.05rem;font-weight:700;color:var(--white);}
+.leaders-hero-text p{font-size:0.67rem;color:rgba(255,255,255,0.55);margin-top:3px;}
+.cat-block{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;}
+.cat-header{background:var(--blue-pale);border-bottom:1px solid var(--border);padding:11px 14px;display:flex;align-items:center;gap:10px;}
+.cat-icon{font-size:1.1rem;line-height:1;}
+.cat-name{font-family:'Lora',serif;font-size:0.92rem;font-weight:700;color:var(--blue);flex:1;}
+.cat-ytd-pill{font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;background:var(--blue);color:var(--white);border-radius:20px;padding:2px 8px;}
+.podium-row{display:flex;align-items:flex-end;gap:6px;padding:14px 14px 10px;}
+.podium-slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.podium-bar{width:100%;border-radius:5px 5px 0 0;min-height:12px;}
+.podium-bar.p1{background:linear-gradient(180deg,#f0d060,#c9a84c);}
+.podium-bar.p2{background:linear-gradient(180deg,#c8d0d8,#9ba7b4);}
+.podium-bar.p3{background:linear-gradient(180deg,#d4a070,#b87d4b);}
+.podium-bar.pempty{background:var(--gray-pale);}
+.podium-medal{font-size:1.2rem;line-height:1;}
+.podium-avatar{width:34px;height:34px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:0.8rem;font-weight:700;color:var(--white);border:2px solid var(--white);box-shadow:0 1px 6px rgba(22,96,171,0.18);}
+.podium-avatar.empty{background:var(--gray-pale);border-color:var(--border);}
+.podium-name{font-size:0.68rem;font-weight:700;color:var(--text);text-align:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.podium-name.empty{color:var(--gray-light);font-weight:400;font-style:italic;}
+.podium-count{font-family:'Lora',serif;font-size:1rem;font-weight:700;color:var(--blue);}
+.podium-count.empty{color:var(--gray-light);font-size:0.75rem;}
+
+.empty-state{font-size:0.78rem;color:var(--gray-light);text-align:center;padding:32px;border:2px dashed var(--border);border-radius:var(--r);font-style:italic;}
+
+/* ── LOADING ── */
+.loading{position:fixed;inset:0;background:rgba(238,243,249,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px;}
+.spinner{width:36px;height:36px;border:3px solid var(--blue-mid);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;}
+.loading-text{font-size:0.78rem;color:var(--gray);font-weight:600;}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--blue-mid);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Loading…</div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="hidden">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo"><h1>White Picket Realty</h1></div>
+      <p class="login-sub">Activity Tracker</p>
+      <label class="login-label">Your Name</label>
+      <input class="login-input" id="loginName" type="text" placeholder="e.g. Sarah Johnson" autocomplete="name" autocorrect="off">
+      <div class="login-error hidden" id="loginError">Please enter your name.</div>
+      <button class="login-btn" onclick="doLogin()">Get Started →</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell" class="app hidden">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-brand">
+        <h2>White Picket Realty</h2>
+        <span>Activity Tracker</span>
+      </div>
+      <span class="topbar-agent" id="topbarAgent"></span>
+      <button class="topbar-logout" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- PAGE: LEADERS (default) -->
+    <div class="page active" id="page-leaders">
+      <div class="leaders-hero">
+        <div class="leaders-hero-icon">🏆</div>
+        <div class="leaders-hero-text">
+          <h3>Category Leaders</h3>
+          <p>Top 3 agents per activity — Year to Date</p>
+        </div>
+      </div>
+      <div id="leadersGrid"></div>
+    </div>
+
+    <!-- PAGE: LOG -->
+    <div class="page" id="page-log">
+      <div class="sec-title">Log Today <span class="sec-pill" id="todayDate"></span></div>
+      <div class="act-grid" id="actGrid"></div>
+      <div class="submit-row">
+        <button class="btn-primary" onclick="submitEntry()">Save Entry</button>
+        <button class="btn-ghost" onclick="resetInputs()">Clear</button>
+      </div>
+      <div class="sec-title">My Scoreboard</div>
+      <div class="score-tabs">
+        <button class="stab active" onclick="setTab('today',this)">Today</button>
+        <button class="stab" onclick="setTab('week',this)">Week</button>
+        <button class="stab" onclick="setTab('alltime',this)">All Time</button>
+      </div>
+      <table class="score-tbl"><thead><tr><th>Activity</th><th>Count</th></tr></thead><tbody id="scoreBody"></tbody></table>
+      <div class="sec-title">Conversions <span class="sec-pill">All Time</span></div>
+      <div class="conv-grid" id="convGrid"></div>
+      <div class="sec-title">Recent Log</div>
+      <div class="log-list" id="logList"></div>
+    </div>
+
+    <!-- PAGE: TEAM -->
+    <div class="page" id="page-team">
+      <div class="sec-title">Team Overview <span class="sec-pill" id="lbPill">All Time</span></div>
+      <div class="team-banner"><div class="team-grid" id="teamBanner"></div></div>
+      <div class="lb-tabs">
+        <button class="lbtab active" onclick="setLbPeriod('alltime',this)">All Time</button>
+        <button class="lbtab" onclick="setLbPeriod('week',this)">This Week</button>
+        <button class="lbtab" onclick="setLbPeriod('today',this)">Today</button>
+      </div>
+      <input class="lb-search" id="lbSearch" type="search" placeholder="Search agent…" oninput="renderLeaderboard()">
+      <div class="agent-cards" id="agentCards"></div>
+      <div class="sec-title">Team Activity Totals</div>
+      <table class="score-tbl"><thead><tr><th>Activity</th><th>Total</th></tr></thead><tbody id="teamBody"></tbody></table>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="bottom-nav-btn active" id="nav-leaders" onclick="showPage('leaders',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Leaders
+    </button>
+    <button class="bottom-nav-btn" id="nav-log" onclick="showPage('log',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      My Log
+    </button>
+    <button class="bottom-nav-btn" id="nav-team" onclick="showPage('team',this)">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+      Team Board
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   SUPABASE CONFIG
+══════════════════════════════════════ */
+const SUPABASE_URL = 'https://qmwfpoftkldrmvoshjao.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtd2Zwb2Z0a2xkcm12b3NoamFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTU2NjgsImV4cCI6MjA5NTQ3MTY2OH0.lZwww149BtyHHRNzdhPSk2eFBDm-DMZ9xnpP-4N6t-c';
+const TABLE = 'activities';
+
+async function sbFetch(method, body, params) {
+  let url = `${SUPABASE_URL}/rest/v1/${TABLE}`;
+  if (params) url += '?' + params;
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+async function loadEntries() {
+  return await sbFetch('GET', null, 'order=timestamp.desc&limit=500');
+}
+
+async function insertEntry(entry) {
+  return await sbFetch('POST', entry);
+}
+
+async function deleteEntryById(id) {
+  await sbFetch('DELETE', null, `id=eq.${id}`);
+}
+
+/* ══════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════ */
+const ACTIVITIES = [
+  { key:'conversations',     label:'Conversations' },
+  { key:'new_nurtures',      label:'New Nurtures' },
+  { key:'appointments_set',  label:'Appointments Set' },
+  { key:'appointments_met',  label:'Appointments Met' },
+  { key:'showings',          label:'Showings' },
+  { key:'open_houses',       label:'Open Houses Hosted' },
+  { key:'offers_submitted',  label:'Offers Submitted' },
+  { key:'offers_accepted',   label:'Offers Accepted' },
+  { key:'closings',          label:'Closings' },
+  { key:'training',          label:'Attended Training/Class' },
+];
+
+const CAT_ICONS = {
+  conversations:'💬', new_nurtures:'🌱', appointments_set:'📅',
+  appointments_met:'🤝', showings:'🏡', open_houses:'🚪',
+  offers_submitted:'📝', offers_accepted:'✅', closings:'🔑',
+  training:'🎓'
+};
+
+let currentAgent = '';
+let currentTab   = 'today';
+let lbPeriod     = 'alltime';
+let allEntries   = [];
+let syncTimer    = null;
+
+/* ══════════════════════════════════════
+   DATE HELPERS
+══════════════════════════════════════ */
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function weekStartStr() { const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().slice(0,10); }
+function yearStr()   { return String(new Date().getFullYear()); }
+function periodFn(p) {
+  if (p==='today') return e => e.date === todayStr();
+  if (p==='week')  return e => e.date >= weekStartStr();
+  return () => true;
+}
+
+/* ══════════════════════════════════════
+   AUTH
+══════════════════════════════════════ */
+function doLogin() {
+  const name = document.getElementById('loginName').value.trim();
+  if (!name) { document.getElementById('loginError').classList.remove('hidden'); return; }
+  document.getElementById('loginError').classList.add('hidden');
+  currentAgent = name; // already trimmed
+  sessionStorage.setItem('wpr_agent', name);
+  startApp();
+}
+document.getElementById('loginName').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  currentAgent = '';
+  sessionStorage.removeItem('wpr_agent');
+  clearInterval(syncTimer);
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginName').value = '';
+}
+
+/* ══════════════════════════════════════
+   APP START
+══════════════════════════════════════ */
+async function startApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.remove('hidden');
+  document.getElementById('topbarAgent').textContent = currentAgent;
+  document.getElementById('todayDate').textContent =
+    new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  buildInputGrid();
+  showLoading(true, 'Loading data…');
+  try {
+    allEntries = await loadEntries();
+  } catch(e) {
+    toast('Could not connect to database', true);
+  }
+  showLoading(false);
+  renderAll();
+  renderLeaders();
+  syncTimer = setInterval(async () => {
+    try { allEntries = await loadEntries(); renderAll(); } catch(e) {}
+  }, 30000);
+}
+
+function showLoading(v, msg) {
+  document.getElementById('loadingOverlay').style.display = v ? 'flex' : 'none';
+  if (msg) document.querySelector('.loading-text').textContent = msg;
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id==='team')    renderLeaderboard();
+  if (id==='leaders') renderLeaders();
+}
+
+/* ══════════════════════════════════════
+   INPUT GRID
+══════════════════════════════════════ */
+function buildInputGrid() {
+  document.getElementById('actGrid').innerHTML = ACTIVITIES.map(a=>`
+    <div class="act-card">
+      <div class="act-lbl">${a.label}</div>
+      <div class="stepper">
+        <button class="stp-btn stp-minus" onclick="step('${a.key}',-1)">−</button>
+        <input class="stp-input" id="inp_${a.key}" type="number" value="0" min="0" inputmode="numeric">
+        <button class="stp-btn" onclick="step('${a.key}',1)">+</button>
+      </div>
+    </div>`).join('');
+}
+function getVal(k) { return Math.max(0, parseInt(document.getElementById('inp_'+k)?.value)||0); }
+function setVal(k,v){ const e=document.getElementById('inp_'+k); if(e) e.value=Math.max(0,v); }
+function step(k,d)  { setVal(k, getVal(k)+d); }
+function resetInputs(){ ACTIVITIES.forEach(a=>setVal(a.key,0)); }
+
+/* ══════════════════════════════════════
+   SUBMIT
+══════════════════════════════════════ */
+async function submitEntry() {
+  const entry = { agent:currentAgent, date:todayStr(), timestamp:new Date().toISOString() };
+  let total = 0;
+  ACTIVITIES.forEach(a=>{ entry[a.key]=getVal(a.key); total+=entry[a.key]; });
+  if (!total) { toast('Nothing to log!', true); return; }
+  showLoading(true, 'Saving…');
+  try {
+    const saved = await insertEntry(entry);
+    allEntries = [saved[0], ...allEntries];
+    resetInputs();
+    renderAll();
+    toast('✓ Entry saved');
+  } catch(e) {
+    toast('Save failed — check connection', true);
+    console.error(e);
+  }
+  showLoading(false);
+}
+
+async function deleteEntry(id) {
+  showLoading(true, 'Deleting…');
+  try {
+    await deleteEntryById(id);
+    allEntries = allEntries.filter(e=>e.id !== id);
+    renderAll();
+  } catch(e) {
+    toast('Delete failed', true);
+  }
+  showLoading(false);
+}
+
+function toast(msg, err) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=err?'#c94040':'#1e2226';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+/* ══════════════════════════════════════
+   COMPUTE
+══════════════════════════════════════ */
+function sumEntries(entries) {
+  const t={}; ACTIVITIES.forEach(a=>t[a.key]=0);
+  entries.forEach(e=>ACTIVITIES.forEach(a=>{ t[a.key]+=(parseInt(e[a.key])||0); }));
+  return t;
+}
+function myEntries(period) {
+  const agentLower = currentAgent.trim().toLowerCase();
+  return allEntries.filter(e => (e.agent||'').trim().toLowerCase() === agentLower && periodFn(period)(e));
+}
+
+/* ══════════════════════════════════════
+   RENDER — MY LOG
+══════════════════════════════════════ */
+function renderAll() {
+  renderScoreboard();
+  renderConversions();
+  renderLog();
+  if (document.getElementById('page-leaders').classList.contains('active')) renderLeaders();
+  if (document.getElementById('page-team').classList.contains('active'))    renderLeaderboard();
+}
+
+function setTab(tab, el) {
+  currentTab=tab;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderScoreboard();
+}
+
+function renderScoreboard() {
+  const scores=sumEntries(myEntries(currentTab));
+  const maxV=Math.max(...Object.values(scores),1);
+  document.getElementById('scoreBody').innerHTML=ACTIVITIES.map(a=>{
+    const v=scores[a.key], pct=Math.round(v/maxV*100);
+    return `<tr><td>${a.label}</td><td>
+      <div class="bar-wrap">
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <span style="min-width:24px;text-align:right;font-family:'Lora',serif;font-weight:700;color:var(--blue)">${v}</span>
+      </div></td></tr>`;
+  }).join('');
+}
+
+function renderConversions() {
+  const s=sumEntries(myEntries('alltime'));
+  const r=(n,d)=>!d?'—':(n/d*100).toFixed(1)+'%';
+  const metrics=[
+    {l:'Conv → Nurture',    v:r(s.new_nurtures,s.conversations),       sub:`${s.new_nurtures} of ${s.conversations}`},
+    {l:'Nurture → Appt',   v:r(s.appointments_set,s.new_nurtures),    sub:`${s.appointments_set} of ${s.new_nurtures}`},
+    {l:'Appt Set → Met',   v:r(s.appointments_met,s.appointments_set),sub:`${s.appointments_met} of ${s.appointments_set}`},
+    {l:'Showing → Offer',  v:r(s.offers_submitted,s.showings),        sub:`${s.offers_submitted} of ${s.showings}`},
+    {l:'Offer → Accepted', v:r(s.offers_accepted,s.offers_submitted), sub:`${s.offers_accepted} of ${s.offers_submitted}`},
+    {l:'Accepted → Close', v:r(s.closings,s.offers_accepted),         sub:`${s.closings} of ${s.offers_accepted}`},
+  ];
+  document.getElementById('convGrid').innerHTML=metrics.map(m=>`
+    <div class="conv-card">
+      <div class="conv-lbl">${m.l}</div>
+      <div class="conv-val">${m.v}</div>
+      <div class="conv-sub">${m.sub}</div>
+    </div>`).join('');
+}
+
+function renderLog() {
+  const el=document.getElementById('logList');
+  const agentLower=currentAgent.trim().toLowerCase();
+  const mine=allEntries.filter(e=>(e.agent||'').trim().toLowerCase()===agentLower);
+  if (!mine.length) { el.innerHTML='<div class="empty-state">No entries yet.</div>'; return; }
+  el.innerHTML=mine.slice(0,30).map(e=>{
+    const parts=ACTIVITIES.filter(a=>parseInt(e[a.key])>0).map(a=>`<b>${e[a.key]}</b> ${a.label}`);
+    const t=new Date(e.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const dt=e.date===todayStr()?'Today':e.date;
+    return `<div class="log-item">
+      <div class="log-right">
+        <div class="log-time">${dt} · ${t}</div>
+        <div class="log-text">${parts.join(', ')||'—'}</div>
+      </div>
+      <button class="log-del" onclick="deleteEntry('${e.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   RENDER — TEAM
+══════════════════════════════════════ */
+function setLbPeriod(p,el) {
+  lbPeriod=p;
+  document.querySelectorAll('.lbtab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('lbPill').textContent=p==='today'?'Today':p==='week'?'This Week':'All Time';
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const search=(document.getElementById('lbSearch')?.value||'').toLowerCase();
+  const filtered=allEntries.filter(periodFn(lbPeriod));
+  const map={};
+  filtered.forEach(e=>{
+    const n=e.agent||'Unknown';
+    if(!map[n]) map[n]=[];
+    map[n].push(e);
+  });
+  let agents=Object.entries(map).map(([name,ents])=>{
+    const scores=sumEntries(ents);
+    const total=Object.values(scores).reduce((a,b)=>a+b,0);
+    return {name,scores,total,count:ents.length};
+  }).sort((a,b)=>b.total-a.total);
+  if(search) agents=agents.filter(a=>a.name.toLowerCase().includes(search));
+  const teamScores=sumEntries(filtered);
+  const teamTotal=Object.values(teamScores).reduce((a,b)=>a+b,0);
+  document.getElementById('teamBanner').innerHTML=`
+    <div class="tb-item"><div class="tv">${agents.length}</div><div class="tl">Active Agents</div></div>
+    <div class="tb-item"><div class="tv">${teamTotal}</div><div class="tl">Team Activities</div></div>
+    <div class="tb-item"><div class="tv">${teamScores.closings}</div><div class="tl">Closings</div></div>
+    <div class="tb-item"><div class="tv">${teamScores.conversations}</div><div class="tl">Conversations</div></div>`;
+  const rCls=i=>i===0?'r1':i===1?'r2':i===2?'r3':'';
+  const ini=n=>n.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'?';
+  document.getElementById('agentCards').innerHTML=agents.length
+    ? agents.map((ag,i)=>`
+      <div class="ag-card" id="agc_${i}">
+        <div class="ag-header" onclick="toggleAgent('agc_${i}')">
+          <span class="ag-rank ${rCls(i)}">#${i+1}</span>
+          <div class="ag-avatar">${ini(ag.name)}</div>
+          <div class="ag-info">
+            <div class="ag-name">${ag.name}</div>
+            <div class="ag-sub">${ag.count} entr${ag.count===1?'y':'ies'}</div>
+          </div>
+          <div class="ag-score">
+            <div class="ag-total">${ag.total}</div>
+            <div class="ag-slbl">activities</div>
+          </div>
+          <span class="ag-chev">▼</span>
+        </div>
+        <div class="ag-detail">
+          <div class="ag-dgrid">
+            ${ACTIVITIES.map(a=>`<div class="ag-di"><div class="ag-dv">${ag.scores[a.key]}</div><div class="ag-dl">${a.label}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>`).join('')
+    : '<div class="empty-state">No agents found.</div>';
+  const maxT=Math.max(...Object.values(teamScores),1);
+  document.getElementById('teamBody').innerHTML=ACTIVITIES.map(a=>{
+    const v=teamScores[a.key],pct=Math.round(v/maxT*100);
+    return `<tr><td>${a.label}</td><td>
+      <div class="bar-wrap">
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <span style="min-width:24px;text-align:right;font-family:'Lora',serif;font-weight:700;color:var(--blue)">${v}</span>
+      </div></td></tr>`;
+  }).join('');
+}
+function toggleAgent(id) { document.getElementById(id)?.classList.toggle('open'); }
+
+/* ══════════════════════════════════════
+   RENDER — LEADERS (YTD Top 3 per category)
+══════════════════════════════════════ */
+function renderLeaders() {
+  const ytd=allEntries.filter(e=>(e.date||'').startsWith(yearStr()));
+  const agentMap={};
+  ytd.forEach(e=>{
+    const n=e.agent||'Unknown';
+    if(!agentMap[n]) agentMap[n]={};
+    ACTIVITIES.forEach(a=>{ agentMap[n][a.key]=(agentMap[n][a.key]||0)+(parseInt(e[a.key])||0); });
+  });
+  const agentNames=Object.keys(agentMap);
+  const medals=['🥇','🥈','🥉'];
+  const barH=[68,48,34];
+  const ini=n=>n.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'?';
+  const html=ACTIVITIES.map(act=>{
+    const ranked=agentNames
+      .map(name=>({name,val:agentMap[name][act.key]||0}))
+      .filter(x=>x.val>0)
+      .sort((a,b)=>b.val-a.val)
+      .slice(0,3);
+    // Visual order: 2nd left, 1st center, 3rd right
+    const slots=[ranked[1],ranked[0],ranked[2]];
+    const barClass=['p2','p1','p3'];
+    const slotH=[barH[1],barH[0],barH[2]];
+    const medalIdx=[1,0,2];
+    const podiumSlots=slots.map((ag,si)=>{
+      if(!ag) return `
+        <div class="podium-slot">
+          <div class="podium-bar pempty" style="height:${slotH[si]}px"></div>
+          <div class="podium-medal">${medals[medalIdx[si]]}</div>
+          <div class="podium-avatar empty"></div>
+          <div class="podium-name empty">—</div>
+          <div class="podium-count empty">—</div>
+        </div>`;
+      const isMe=ag.name===currentAgent;
+      return `
+        <div class="podium-slot">
+          <div class="podium-bar ${barClass[si]}" style="height:${slotH[si]}px"></div>
+          <div class="podium-medal">${medals[medalIdx[si]]}</div>
+          <div class="podium-avatar" style="${isMe?'border:2px solid var(--blue);box-shadow:0 0 0 2px var(--blue-mid);':''}">${ini(ag.name)}</div>
+          <div class="podium-name${isMe?' style="color:var(--blue)"':''}" title="${ag.name}">${ag.name.split(' ')[0]}</div>
+          <div class="podium-count">${ag.val}</div>
+        </div>`;
+    });
+    return `
+      <div class="cat-block">
+        <div class="cat-header">
+          <span class="cat-icon">${CAT_ICONS[act.key]||'📊'}</span>
+          <span class="cat-name">${act.label}</span>
+          <span class="cat-ytd-pill">YTD</span>
+        </div>
+        ${ranked.length===0
+          ? '<div class="empty-state" style="margin:12px 14px;padding:18px">No data yet.</div>'
+          : `<div class="podium-row">${podiumSlots.join('')}</div>`}
+      </div>`;
+  }).join('');
+  document.getElementById('leadersGrid').innerHTML=html||'<div class="empty-state">No data logged yet for this year.</div>';
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+(async function init() {
+  const saved=sessionStorage.getItem('wpr_agent');
+  if (saved) {
+    currentAgent=saved;
+    await startApp();
+  } else {
+    showLoading(false);
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+})();
+</script>
+</body>
+</html>

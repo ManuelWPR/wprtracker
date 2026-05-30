@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WPR Admin Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#1660ab;--blue-dark:#0f4d87;--blue-light:#2272c3;
+  --blue-pale:#e8f1fb;--blue-mid:#cce0f5;
+  --gray:#606060;--gray-light:#9a9a9a;--gray-pale:#f4f6f8;
+  --white:#fff;--border:#dce8f4;--text:#1e2226;
+  --green:#2a8c52;--red:#c94040;--orange:#d97706;
+  --shadow:0 1px 8px rgba(22,96,171,.09);
+  --shadow-md:0 4px 20px rgba(22,96,171,.13);
+  --r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;background:#eef3f9;font-family:'Nunito',sans-serif;color:var(--text);}
+.hidden{display:none!important;}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,#eef3f9 60%,#d6e8f8);}
+.login-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:40px 32px 36px;width:100%;max-width:380px;box-shadow:var(--shadow-md);text-align:center;}
+.login-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue);color:var(--white);border-radius:30px;padding:4px 14px;font-size:0.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;}
+.login-card h1{font-family:'Lora',serif;font-size:1.4rem;font-weight:700;color:var(--blue);margin-bottom:4px;}
+.login-card p{font-size:0.72rem;color:var(--gray-light);letter-spacing:.1em;text-transform:uppercase;margin-bottom:28px;}
+.form-label{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);text-align:left;display:block;margin-bottom:6px;}
+.form-input{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:1rem;color:var(--text);outline:none;transition:border-color .2s;margin-bottom:18px;}
+.form-input:focus{border-color:var(--blue);}
+.form-btn{width:100%;padding:13px;background:var(--blue);color:var(--white);border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.form-btn:hover{background:var(--blue-dark);}
+.form-error{font-size:.78rem;color:var(--red);margin:-10px 0 14px;text-align:left;}
+
+/* ── SHELL ── */
+.shell{min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--blue);box-shadow:0 2px 12px rgba(22,96,171,.25);position:sticky;top:0;z-index:100;}
+.topbar-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:0 20px;height:58px;}
+.topbar-brand h2{font-family:'Lora',serif;font-size:1.05rem;font-weight:700;color:var(--white);}
+.topbar-brand span{font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5);display:block;}
+.topbar-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:var(--white);border-radius:20px;padding:3px 10px;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+.topbar-brand{flex:1;}
+.topbar-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:var(--white);padding:7px 14px;border-radius:6px;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.topbar-logout:hover{background:rgba(255,255,255,.25);}
+
+/* ── SIDEBAR + CONTENT ── */
+.layout{display:flex;flex:1;max-width:1100px;margin:0 auto;width:100%;gap:0;}
+.sidebar{width:200px;flex-shrink:0;padding:20px 12px;border-right:1px solid var(--border);background:var(--white);}
+.sidebar-link{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;font-size:.82rem;font-weight:600;color:var(--gray);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left;margin-bottom:2px;}
+.sidebar-link svg{width:17px;height:17px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.sidebar-link:hover{background:var(--blue-pale);color:var(--blue);}
+.sidebar-link.active{background:var(--blue);color:var(--white);}
+.sidebar-section{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gray-light);padding:14px 12px 6px;}
+
+.main{flex:1;padding:24px 24px 60px;min-width:0;}
+
+@media(max-width:700px){
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);padding:10px;display:flex;flex-wrap:wrap;gap:4px;}
+  .sidebar-section{display:none;}
+  .sidebar-link{flex:1;min-width:80px;justify-content:center;font-size:.65rem;padding:8px 6px;}
+  .main{padding:16px 14px 40px;}
+}
+
+/* ── SECTION HEADER ── */
+.section-hd{margin-bottom:18px;}
+.section-hd h3{font-family:'Lora',serif;font-size:1.2rem;font-weight:700;color:var(--blue);}
+.section-hd p{font-size:.78rem;color:var(--gray-light);margin-top:3px;}
+
+/* ── PANELS ── */
+.panel{display:none;}
+.panel.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STAT GRID ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);}
+.stat-val{font-family:'Lora',serif;font-size:2rem;font-weight:700;color:var(--blue);line-height:1;}
+.stat-lbl{font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--gray);margin-top:5px;}
+
+/* ── CONTROLS ROW ── */
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.ctrl-input{padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'Nunito',sans-serif;font-size:.82rem;color:var(--text);outline:none;background:var(--white);}
+.ctrl-input:focus{border-color:var(--blue);}
+.ctrl-select{padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'Nunito',sans-serif;font-size:.82rem;color:var(--text);background:var(--white);outline:none;cursor:pointer;}
+.ctrl-btn{padding:9px 16px;border-radius:7px;font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;border:none;}
+.ctrl-btn.primary{background:var(--blue);color:var(--white);}
+.ctrl-btn.primary:hover{background:var(--blue-dark);}
+.ctrl-btn.ghost{background:var(--white);color:var(--gray);border:1px solid var(--border);}
+.ctrl-btn.ghost:hover{border-color:var(--blue-mid);color:var(--blue);}
+.ctrl-btn.danger{background:var(--white);color:var(--red);border:1px solid #f5c0c0;}
+.ctrl-btn.danger:hover{background:#fdf0f0;}
+.ctrl-btn.success{background:var(--green);color:var(--white);}
+.ctrl-btn.success:hover{opacity:.88;}
+
+/* ── TABLE ── */
+.tbl-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px;}
+.tbl-scroll{overflow-x:auto;}
+table.data-tbl{width:100%;border-collapse:collapse;font-size:.82rem;}
+table.data-tbl th{background:var(--blue);color:var(--white);padding:10px 12px;text-align:left;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;}
+table.data-tbl td{padding:10px 12px;border-bottom:1px solid #edf3fb;vertical-align:middle;}
+table.data-tbl tr:last-child td{border-bottom:none;}
+table.data-tbl tbody tr:hover td{background:var(--blue-pale);}
+.tbl-empty{padding:36px;text-align:center;font-size:.8rem;color:var(--gray-light);font-style:italic;}
+
+/* ── EDIT CELL ── */
+.edit-input{width:60px;padding:5px 7px;border:1.5px solid var(--blue-mid);border-radius:5px;font-family:'Nunito',sans-serif;font-size:.82rem;color:var(--blue);text-align:center;outline:none;}
+.edit-input:focus{border-color:var(--blue);}
+.row-editing td{background:var(--blue-pale)!important;}
+
+/* ── AGENT MANAGE ── */
+.agent-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.agent-row{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);}
+.agent-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:.85rem;font-weight:700;color:var(--white);flex-shrink:0;}
+.agent-info{flex:1;min-width:0;}
+.agent-name-text{font-size:.9rem;font-weight:700;color:var(--text);}
+.agent-meta{font-size:.67rem;color:var(--gray-light);margin-top:1px;}
+.agent-actions{display:flex;gap:6px;}
+.icon-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.icon-btn svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.icon-btn:hover{border-color:var(--blue-mid);color:var(--blue);}
+.icon-btn.danger:hover{border-color:#f5c0c0;color:var(--red);background:#fdf0f0;}
+
+/* ── RENAME INPUT ── */
+.rename-input{flex:1;padding:7px 10px;border:1.5px solid var(--blue);border-radius:6px;font-family:'Nunito',sans-serif;font-size:.85rem;outline:none;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(30,34,38,.45);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px;backdrop-filter:blur(2px);}
+.modal{background:var(--white);border-radius:14px;padding:28px 24px 24px;width:100%;max-width:420px;box-shadow:var(--shadow-md);}
+.modal h4{font-family:'Lora',serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:8px;}
+.modal p{font-size:.82rem;color:var(--gray);margin-bottom:20px;line-height:1.5;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+
+/* ── DATE RANGE ── */
+.date-range{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px;background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);}
+.date-range label{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);}
+
+/* ── DEEP DIVE ── */
+.dive-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:500px){.dive-grid{grid-template-columns:1fr;}}
+.dive-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:13px;box-shadow:var(--shadow);}
+.dive-val{font-family:'Lora',serif;font-size:1.5rem;font-weight:700;color:var(--blue);}
+.dive-lbl{font-size:.6rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--gray);margin-top:3px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--white);padding:10px 20px;border-radius:30px;font-size:.78rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+.toast.show{opacity:1;}
+
+/* ── LOADING ── */
+.loading{position:fixed;inset:0;background:rgba(238,243,249,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px;}
+.spinner{width:36px;height:36px;border:3px solid var(--blue-mid);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;}
+.loading-txt{font-size:.78rem;color:var(--gray);font-weight:600;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── MISC ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;letter-spacing:.06em;}
+.badge-blue{background:var(--blue-pale);color:var(--blue);}
+.badge-red{background:#fde8e8;color:var(--red);}
+.badge-green{background:#e6f4ec;color:var(--green);}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--blue-mid);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-txt">Loading…</div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="hidden">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-badge">⚙ Admin Portal</div>
+      <h1>White Picket Realty</h1>
+      <p>Admin Access Only</p>
+      <label class="form-label">Admin Password</label>
+      <input class="form-input" id="adminPwd" type="password" placeholder="Enter password…" autocomplete="current-password">
+      <div class="form-error hidden" id="loginError">Incorrect password.</div>
+      <button class="form-btn" onclick="doLogin()">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div id="shell" class="shell hidden">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-brand">
+        <h2>White Picket Realty</h2>
+        <span>Admin Portal</span>
+      </div>
+      <span class="topbar-badge">⚙ Admin</span>
+      <button class="topbar-logout" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">Overview</div>
+      <button class="sidebar-link active" onclick="showPanel('dashboard',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </button>
+      <div class="sidebar-section">Entries</div>
+      <button class="sidebar-link" onclick="showPanel('entries',this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        All Entries
+      </button>
+      <div class="sidebar-section">Agents</div>
+      <button class="sidebar-link" onclick="showPanel('agents',this)">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Manage Agents
+      </button>
+      <button class="sidebar-link" onclick="showPanel('deepdive',this)">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Agent Deep-Dive
+      </button>
+      <div class="sidebar-section">Reports</div>
+      <button class="sidebar-link" onclick="showPanel('reports',this)">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Date Range
+      </button>
+      <button class="sidebar-link" onclick="showPanel('export',this)">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="section-hd">
+          <h3>Dashboard</h3>
+          <p>Team-wide snapshot across all time</p>
+        </div>
+        <div class="stat-grid" id="dashStats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="dash-cols">
+          <div>
+            <div class="section-hd"><h3 style="font-size:.95rem">Top Agents (All Time)</h3></div>
+            <div class="tbl-wrap"><div class="tbl-scroll">
+              <table class="data-tbl"><thead><tr><th>#</th><th>Agent</th><th>Total</th><th>Entries</th></tr></thead>
+              <tbody id="dashTopAgents"></tbody></table>
+            </div></div>
+          </div>
+          <div>
+            <div class="section-hd"><h3 style="font-size:.95rem">Activity Totals (All Time)</h3></div>
+            <div class="tbl-wrap"><div class="tbl-scroll">
+              <table class="data-tbl"><thead><tr><th>Activity</th><th>Total</th></tr></thead>
+              <tbody id="dashTotals"></tbody></table>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ALL ENTRIES ══ -->
+      <div class="panel" id="panel-entries">
+        <div class="section-hd">
+          <h3>All Entries</h3>
+          <p>View, edit, or delete any agent's logged entries</p>
+        </div>
+        <div class="controls">
+          <input class="ctrl-input" id="entrySearch" type="search" placeholder="Search agent…" oninput="renderEntries()" style="flex:1;min-width:140px;">
+          <input class="ctrl-input" id="entryDateFrom" type="date" onchange="renderEntries()">
+          <span style="font-size:.75rem;color:var(--gray)">to</span>
+          <input class="ctrl-input" id="entryDateTo" type="date" onchange="renderEntries()">
+          <button class="ctrl-btn ghost" onclick="clearEntryFilters()">Clear</button>
+        </div>
+        <div class="tbl-wrap"><div class="tbl-scroll">
+          <table class="data-tbl" id="entriesTable">
+            <thead><tr>
+              <th>Date</th><th>Agent</th>
+              <th>Conv</th><th>Nurtures</th><th>Appt Set</th><th>Appt Met</th>
+              <th>Showings</th><th>Open Houses</th><th>Offers Sub</th><th>Offers Acc</th>
+              <th>Closings</th><th>Training</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="entriesBody"></tbody>
+          </table>
+        </div></div>
+        <div id="entriesPager" style="font-size:.75rem;color:var(--gray);margin-top:8px;"></div>
+      </div>
+
+      <!-- ══ MANAGE AGENTS ══ -->
+      <div class="panel" id="panel-agents">
+        <div class="section-hd">
+          <h3>Manage Agents</h3>
+          <p>Rename agents or reset / remove their data</p>
+        </div>
+        <div class="controls">
+          <input class="ctrl-input" id="agentSearch" type="search" placeholder="Search agents…" oninput="renderAgentList()" style="flex:1;">
+        </div>
+        <div class="agent-list" id="agentList"></div>
+      </div>
+
+      <!-- ══ DEEP DIVE ══ -->
+      <div class="panel" id="panel-deepdive">
+        <div class="section-hd">
+          <h3>Agent Deep-Dive</h3>
+          <p>Full breakdown for a single agent</p>
+        </div>
+        <div class="controls">
+          <select class="ctrl-select" id="diveAgent" onchange="renderDive()" style="flex:1;">
+            <option value="">— Select Agent —</option>
+          </select>
+          <input class="ctrl-input" id="diveDateFrom" type="date" onchange="renderDive()">
+          <span style="font-size:.75rem;color:var(--gray)">to</span>
+          <input class="ctrl-input" id="diveDateTo" type="date" onchange="renderDive()">
+        </div>
+        <div id="diveContent"></div>
+      </div>
+
+      <!-- ══ DATE RANGE REPORT ══ -->
+      <div class="panel" id="panel-reports">
+        <div class="section-hd">
+          <h3>Date Range Report</h3>
+          <p>Team-wide totals for a custom date window</p>
+        </div>
+        <div class="date-range">
+          <label>From</label>
+          <input class="ctrl-input" id="rptFrom" type="date" onchange="renderReport()">
+          <label>To</label>
+          <input class="ctrl-input" id="rptTo" type="date" onchange="renderReport()">
+          <button class="ctrl-btn ghost" onclick="setRptPreset('week')">This Week</button>
+          <button class="ctrl-btn ghost" onclick="setRptPreset('month')">This Month</button>
+          <button class="ctrl-btn ghost" onclick="setRptPreset('ytd')">YTD</button>
+        </div>
+        <div class="stat-grid" id="rptStats"></div>
+        <div class="tbl-wrap"><div class="tbl-scroll">
+          <table class="data-tbl">
+            <thead><tr><th>Agent</th><th>Conv</th><th>Nurtures</th><th>Appt Set</th><th>Appt Met</th><th>Showings</th><th>Open Houses</th><th>Offers Sub</th><th>Offers Acc</th><th>Closings</th><th>Training</th><th>Total</th></tr></thead>
+            <tbody id="rptBody"></tbody>
+          </table>
+        </div></div>
+      </div>
+
+      <!-- ══ EXPORT ══ -->
+      <div class="panel" id="panel-export">
+        <div class="section-hd">
+          <h3>Export to CSV</h3>
+          <p>Download data as a spreadsheet</p>
+        </div>
+        <div style="display:grid;gap:12px;max-width:480px;">
+          <div class="tbl-wrap" style="padding:20px 20px 16px;">
+            <p style="font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:6px;">All Entries</p>
+            <p style="font-size:.77rem;color:var(--gray-light);margin-bottom:14px;">Every row in the database — all agents, all time</p>
+            <button class="ctrl-btn primary" onclick="exportCSV('all')">⬇ Download All Entries</button>
+          </div>
+          <div class="tbl-wrap" style="padding:20px 20px 16px;">
+            <p style="font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:6px;">By Agent Summary</p>
+            <p style="font-size:.77rem;color:var(--gray-light);margin-bottom:14px;">One row per agent with total counts for each activity</p>
+            <button class="ctrl-btn primary" onclick="exportCSV('agents')">⬇ Download Agent Summary</button>
+          </div>
+          <div class="tbl-wrap" style="padding:20px 20px 16px;">
+            <p style="font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:6px;">Date Range Export</p>
+            <p style="font-size:.77rem;color:var(--gray-light);margin-bottom:12px;">Filter to a date window before exporting</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+              <input class="ctrl-input" id="expFrom" type="date">
+              <span style="font-size:.75rem;color:var(--gray);align-self:center;">to</span>
+              <input class="ctrl-input" id="expTo" type="date">
+            </div>
+            <button class="ctrl-btn primary" onclick="exportCSV('range')">⬇ Download Range</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /shell -->
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay hidden" id="confirmModal">
+  <div class="modal">
+    <h4 id="modalTitle">Confirm</h4>
+    <p id="modalBody">Are you sure?</p>
+    <div class="modal-actions">
+      <button class="ctrl-btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="ctrl-btn danger" id="modalConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay hidden" id="editModal">
+  <div class="modal">
+    <h4>Edit Entry</h4>
+    <p style="margin-bottom:14px;font-size:.78rem;color:var(--gray)">Adjust values then save.</p>
+    <div id="editFields" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;"></div>
+    <div class="modal-actions">
+      <button class="ctrl-btn ghost" onclick="closeEditModal()">Cancel</button>
+      <button class="ctrl-btn primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   CONFIG
+══════════════════════════════════════ */
+const SUPABASE_URL = 'https://qmwfpoftkldrmvoshjao.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtd2Zwb2Z0a2xkcm12b3NoamFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTU2NjgsImV4cCI6MjA5NTQ3MTY2OH0.lZwww149BtyHHRNzdhPSk2eFBDm-DMZ9xnpP-4N6t-c';
+const TABLE = 'activities';
+const ADMIN_PASSWORD = 'WPR2025admin!'; // ← Change this password
+
+const ACTIVITIES = [
+  { key:'conversations',     label:'Conversations' },
+  { key:'new_nurtures',      label:'New Nurtures' },
+  { key:'appointments_set',  label:'Appointments Set' },
+  { key:'appointments_met',  label:'Appointments Met' },
+  { key:'showings',          label:'Showings' },
+  { key:'open_houses',       label:'Open Houses Hosted' },
+  { key:'offers_submitted',  label:'Offers Submitted' },
+  { key:'offers_accepted',   label:'Offers Accepted' },
+  { key:'closings',          label:'Closings' },
+  { key:'training',          label:'Training/Class' },
+];
+
+const ACT_KEYS  = ACTIVITIES.map(a=>a.key);
+const ACT_HEADS = ACTIVITIES.map(a=>a.label);
+
+/* ══════════════════════════════════════
+   SUPABASE HELPERS
+══════════════════════════════════════ */
+async function sbFetch(method, body, params) {
+  let url = `${SUPABASE_URL}/rest/v1/${TABLE}`;
+  if (params) url += '?' + params;
+  const res = await fetch(url, {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': method==='POST' ? 'return=representation' : 'return=minimal'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : [];
+}
+
+async function loadAll() {
+  return await sbFetch('GET', null, 'order=timestamp.desc&limit=2000');
+}
+
+async function sbUpdate(id, patch) {
+  await sbFetch('PATCH', patch, `id=eq.${id}`);
+}
+
+async function sbDelete(id) {
+  await sbFetch('DELETE', null, `id=eq.${id}`);
+}
+
+async function sbDeleteWhere(param) {
+  await sbFetch('DELETE', null, param);
+}
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let allEntries = [];
+let entriesPage = 1;
+const PAGE_SIZE = 50;
+let editingEntry = null;
+let pendingAction = null;
+
+/* ══════════════════════════════════════
+   AUTH
+══════════════════════════════════════ */
+function doLogin() {
+  const pwd = document.getElementById('adminPwd').value;
+  if (pwd !== ADMIN_PASSWORD) {
+    document.getElementById('loginError').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('loginError').classList.add('hidden');
+  sessionStorage.setItem('wpr_admin', '1');
+  startAdmin();
+}
+document.getElementById('adminPwd').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  sessionStorage.removeItem('wpr_admin');
+  document.getElementById('shell').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('adminPwd').value = '';
+}
+
+/* ══════════════════════════════════════
+   START
+══════════════════════════════════════ */
+async function startAdmin() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('shell').classList.remove('hidden');
+  showLoading(true);
+  allEntries = await loadAll();
+  showLoading(false);
+  renderDashboard();
+  populateAgentDropdowns();
+}
+
+function showLoading(v) {
+  document.getElementById('loadingOverlay').style.display = v ? 'flex' : 'none';
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  const renders = {
+    dashboard: renderDashboard,
+    entries: renderEntries,
+    agents: renderAgentList,
+    deepdive: renderDive,
+    reports: renderReport,
+    export: ()=>{}
+  };
+  renders[id]?.();
+}
+
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+function sum(entries) {
+  const t = {}; ACT_KEYS.forEach(k=>t[k]=0);
+  entries.forEach(e=>ACT_KEYS.forEach(k=>{ t[k]+=(parseInt(e[k])||0); }));
+  return t;
+}
+
+function totalOf(s) { return ACT_KEYS.reduce((acc,k)=>acc+(s[k]||0),0); }
+
+function ini(n) { return (n||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase(); }
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function monthStart() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; }
+function weekStart() { const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().slice(0,10); }
+function yearStart() { return `${new Date().getFullYear()}-01-01`; }
+
+function agentNames() {
+  return [...new Set(allEntries.map(e=>(e.agent||'').trim()))].filter(Boolean).sort();
+}
+
+function populateAgentDropdowns() {
+  const names = agentNames();
+  const sel = document.getElementById('diveAgent');
+  sel.innerHTML = '<option value="">— Select Agent —</option>' +
+    names.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+
+function toast(msg, err) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=err?'#c94040':'#1e2226';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════ */
+function renderDashboard() {
+  const s = sum(allEntries);
+  const tot = totalOf(s);
+  const agents = agentNames();
+  const todayE = allEntries.filter(e=>e.date===todayStr());
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${agents.length}</div><div class="stat-lbl">Total Agents</div></div>
+    <div class="stat-card"><div class="stat-val">${allEntries.length}</div><div class="stat-lbl">Total Entries</div></div>
+    <div class="stat-card"><div class="stat-val">${tot}</div><div class="stat-lbl">All-Time Activities</div></div>
+    <div class="stat-card"><div class="stat-val">${Object.values(sum(todayE)).reduce((a,b)=>a+b,0)}</div><div class="stat-lbl">Today's Activities</div></div>`;
+
+  // Top agents
+  const agMap = {};
+  allEntries.forEach(e => {
+    const n=(e.agent||'').trim();
+    if(!agMap[n]) agMap[n]={scores:sum([]),count:0};
+    ACT_KEYS.forEach(k=>agMap[n].scores[k]+=(parseInt(e[k])||0));
+    agMap[n].count++;
+  });
+  const sorted = Object.entries(agMap).map(([name,d])=>({name,total:totalOf(d.scores),count:d.count}))
+    .sort((a,b)=>b.total-a.total).slice(0,10);
+  document.getElementById('dashTopAgents').innerHTML = sorted.length
+    ? sorted.map((ag,i)=>`<tr><td>${i+1}</td><td>${ag.name}</td><td><b>${ag.total}</b></td><td>${ag.count}</td></tr>`).join('')
+    : `<tr><td colspan="4" class="tbl-empty">No data</td></tr>`;
+
+  // Activity totals
+  document.getElementById('dashTotals').innerHTML = ACTIVITIES.map(a=>
+    `<tr><td>${a.label}</td><td><b>${s[a.key]}</b></td></tr>`).join('');
+}
+
+/* ══════════════════════════════════════
+   ALL ENTRIES
+══════════════════════════════════════ */
+function clearEntryFilters() {
+  document.getElementById('entrySearch').value='';
+  document.getElementById('entryDateFrom').value='';
+  document.getElementById('entryDateTo').value='';
+  entriesPage=1; renderEntries();
+}
+
+function renderEntries() {
+  entriesPage=1;
+  _renderEntriesPage();
+}
+
+function _renderEntriesPage() {
+  const search=(document.getElementById('entrySearch').value||'').toLowerCase();
+  const from=document.getElementById('entryDateFrom').value;
+  const to=document.getElementById('entryDateTo').value;
+  let filtered=allEntries.filter(e=>{
+    if(search && !(e.agent||'').toLowerCase().includes(search)) return false;
+    if(from && e.date<from) return false;
+    if(to   && e.date>to)   return false;
+    return true;
+  });
+  const total=filtered.length;
+  const start=(entriesPage-1)*PAGE_SIZE;
+  const page=filtered.slice(start,start+PAGE_SIZE);
+
+  const body=document.getElementById('entriesBody');
+  if(!page.length){ body.innerHTML=`<tr><td colspan="13" class="tbl-empty">No entries found.</td></tr>`; return; }
+
+  body.innerHTML=page.map(e=>`
+    <tr id="row_${e.id}">
+      <td>${e.date||'—'}</td>
+      <td><b>${e.agent||'—'}</b></td>
+      ${ACT_KEYS.map(k=>`<td>${parseInt(e[k])||0}</td>`).join('')}
+      <td style="white-space:nowrap;display:flex;gap:4px;padding:8px 12px;">
+        <button class="icon-btn" title="Edit" onclick="openEdit('${e.id}')">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn danger" title="Delete" onclick="confirmDelete('${e.id}','entry')">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </td>
+    </tr>`).join('');
+
+  const pages=Math.ceil(total/PAGE_SIZE);
+  document.getElementById('entriesPager').innerHTML=
+    `Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total} entries` +
+    (pages>1 ? ` &nbsp;<button class="ctrl-btn ghost" style="padding:4px 10px;" onclick="entriesPage=Math.max(1,entriesPage-1);_renderEntriesPage()" ${entriesPage===1?'disabled':''}>‹</button>
+    <button class="ctrl-btn ghost" style="padding:4px 10px;" onclick="entriesPage=Math.min(${pages},entriesPage+1);_renderEntriesPage()" ${entriesPage===pages?'disabled':''}>›</button>` : '');
+}
+
+/* ══════════════════════════════════════
+   EDIT ENTRY
+══════════════════════════════════════ */
+function openEdit(id) {
+  editingEntry = allEntries.find(e=>e.id===id);
+  if(!editingEntry) return;
+  document.getElementById('editFields').innerHTML = ACTIVITIES.map(a=>`
+    <div>
+      <div style="font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">${a.label}</div>
+      <input class="edit-input" id="ef_${a.key}" type="number" min="0" value="${parseInt(editingEntry[a.key])||0}" style="width:100%;">
+    </div>`).join('');
+  document.getElementById('editModal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+  editingEntry=null;
+}
+
+async function saveEdit() {
+  if(!editingEntry) return;
+  const patch={};
+  ACTIVITIES.forEach(a=>{
+    patch[a.key]=parseInt(document.getElementById('ef_'+a.key).value)||0;
+  });
+  showLoading(true);
+  try {
+    await sbUpdate(editingEntry.id, patch);
+    Object.assign(editingEntry, patch);
+    closeEditModal();
+    _renderEntriesPage();
+    toast('✓ Entry updated');
+  } catch(e) { toast('Update failed',true); }
+  showLoading(false);
+}
+
+/* ══════════════════════════════════════
+   DELETE / CONFIRM MODAL
+══════════════════════════════════════ */
+function confirmDelete(id, type, extra) {
+  pendingAction = {id, type, extra};
+  if(type==='entry'){
+    document.getElementById('modalTitle').textContent='Delete Entry';
+    document.getElementById('modalBody').textContent='This will permanently delete this log entry. This cannot be undone.';
+    document.getElementById('modalConfirmBtn').textContent='Delete Entry';
+    document.getElementById('modalConfirmBtn').className='ctrl-btn danger';
+  } else if(type==='reset'){
+    document.getElementById('modalTitle').textContent=`Reset ${extra}'s Data`;
+    document.getElementById('modalBody').textContent=`This will permanently delete ALL entries for ${extra}. This cannot be undone.`;
+    document.getElementById('modalConfirmBtn').textContent='Reset Agent';
+    document.getElementById('modalConfirmBtn').className='ctrl-btn danger';
+  } else if(type==='rename'){
+    document.getElementById('modalTitle').textContent=`Rename Agent`;
+    document.getElementById('modalBody').textContent=`Rename "${extra.from}" to "${extra.to}"? This will update all their entries.`;
+    document.getElementById('modalConfirmBtn').textContent='Rename';
+    document.getElementById('modalConfirmBtn').className='ctrl-btn primary';
+  }
+  document.getElementById('confirmModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('confirmModal').classList.add('hidden');
+  pendingAction=null;
+}
+
+document.getElementById('modalConfirmBtn').addEventListener('click', async ()=>{
+  if(!pendingAction) return;
+  closeModal();
+  showLoading(true);
+  try {
+    if(pendingAction.type==='entry'){
+      await sbDelete(pendingAction.id);
+      allEntries=allEntries.filter(e=>e.id!==pendingAction.id);
+      renderEntries();
+      toast('✓ Entry deleted');
+    } else if(pendingAction.type==='reset'){
+      const agentName=encodeURIComponent(pendingAction.extra);
+      await sbDeleteWhere(`agent=eq.${agentName}`);
+      allEntries=allEntries.filter(e=>(e.agent||'').trim()!==pendingAction.extra);
+      renderAgentList();
+      renderDashboard();
+      toast(`✓ Reset ${pendingAction.extra}`);
+    } else if(pendingAction.type==='rename'){
+      const {from,to} = pendingAction.extra;
+      // Update all entries for this agent in Supabase
+      await sbFetch('PATCH',{agent:to},`agent=eq.${encodeURIComponent(from)}`);
+      allEntries.forEach(e=>{ if((e.agent||'').trim()===from) e.agent=to; });
+      populateAgentDropdowns();
+      renderAgentList();
+      toast(`✓ Renamed to ${to}`);
+    }
+  } catch(e) { toast('Action failed',true); console.error(e); }
+  showLoading(false);
+});
+
+/* ══════════════════════════════════════
+   MANAGE AGENTS
+══════════════════════════════════════ */
+function renderAgentList() {
+  const search=(document.getElementById('agentSearch')?.value||'').toLowerCase();
+  const agMap={};
+  allEntries.forEach(e=>{
+    const n=(e.agent||'').trim(); if(!n) return;
+    if(!agMap[n]) agMap[n]={count:0,total:0};
+    agMap[n].count++;
+    agMap[n].total+=ACT_KEYS.reduce((acc,k)=>acc+(parseInt(e[k])||0),0);
+  });
+  let agents=Object.entries(agMap).sort((a,b)=>a[0].localeCompare(b[0]));
+  if(search) agents=agents.filter(([n])=>n.toLowerCase().includes(search));
+
+  const el=document.getElementById('agentList');
+  if(!agents.length){ el.innerHTML='<div class="tbl-empty">No agents found.</div>'; return; }
+
+  el.innerHTML=agents.map(([name,d])=>`
+    <div class="agent-row" id="agrow_${btoa(name).replace(/=/g,'')}">
+      <div class="agent-avatar">${ini(name)}</div>
+      <div class="agent-info">
+        <div class="agent-name-text" id="agname_${btoa(name).replace(/=/g,'')}">${name}</div>
+        <div class="agent-meta">${d.count} entries · ${d.total} activities</div>
+      </div>
+      <div class="agent-actions">
+        <button class="icon-btn" title="Rename" onclick="startRename('${name}')">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn danger" title="Reset all data" onclick="confirmDelete('${name}','reset','${name}')">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function startRename(name) {
+  const safeId = btoa(name).replace(/=/g,'');
+  const row = document.getElementById('agrow_'+safeId);
+  if(!row) return;
+  const info = row.querySelector('.agent-info');
+  info.innerHTML = `
+    <input class="rename-input" id="renameinp_${safeId}" value="${name}" type="text">`;
+  const actions = row.querySelector('.agent-actions');
+  actions.innerHTML = `
+    <button class="ctrl-btn primary" style="padding:6px 12px;font-size:.7rem;" onclick="commitRename('${name}','${safeId}')">Save</button>
+    <button class="ctrl-btn ghost" style="padding:6px 10px;font-size:.7rem;" onclick="renderAgentList()">Cancel</button>`;
+}
+
+function commitRename(oldName, safeId) {
+  const newName=(document.getElementById('renameinp_'+safeId)?.value||'').trim();
+  if(!newName||newName===oldName){ renderAgentList(); return; }
+  confirmDelete(null,'rename',{from:oldName,to:newName});
+}
+
+/* ══════════════════════════════════════
+   DEEP DIVE
+══════════════════════════════════════ */
+function renderDive() {
+  const agent=(document.getElementById('diveAgent')?.value||'').trim();
+  const from=document.getElementById('diveDateFrom')?.value;
+  const to=document.getElementById('diveDateTo')?.value;
+  const el=document.getElementById('diveContent');
+
+  if(!agent){ el.innerHTML='<div class="tbl-empty" style="border:2px dashed var(--border);border-radius:var(--r);">Select an agent above to see their breakdown.</div>'; return; }
+
+  let entries=allEntries.filter(e=>(e.agent||'').trim()===agent);
+  if(from) entries=entries.filter(e=>e.date>=from);
+  if(to)   entries=entries.filter(e=>e.date<=to);
+
+  if(!entries.length){ el.innerHTML='<div class="tbl-empty" style="border:2px dashed var(--border);border-radius:var(--r);">No entries found for this agent in the selected range.</div>'; return; }
+
+  const s=sum(entries);
+  const tot=totalOf(s);
+  const days=[...new Set(entries.map(e=>e.date))].length;
+
+  el.innerHTML = `
+    <div class="stat-grid" style="margin-bottom:16px;">
+      <div class="stat-card"><div class="stat-val">${entries.length}</div><div class="stat-lbl">Log Entries</div></div>
+      <div class="stat-card"><div class="stat-val">${tot}</div><div class="stat-lbl">Total Activities</div></div>
+      <div class="stat-card"><div class="stat-val">${days}</div><div class="stat-lbl">Active Days</div></div>
+      <div class="stat-card"><div class="stat-val">${days?Math.round(tot/days):0}</div><div class="stat-lbl">Avg / Day</div></div>
+    </div>
+    <div class="dive-grid">
+      ${ACTIVITIES.map(a=>`
+        <div class="dive-card">
+          <div class="dive-val">${s[a.key]}</div>
+          <div class="dive-lbl">${a.label}</div>
+        </div>`).join('')}
+    </div>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+      <table class="data-tbl">
+        <thead><tr><th>Date</th>${ACT_KEYS.map(k=>`<th>${ACTIVITIES.find(a=>a.key===k).label.split(' ')[0]}</th>`).join('')}<th>Total</th></tr></thead>
+        <tbody>
+          ${[...entries].reverse().map(e=>{
+            const rowTot=ACT_KEYS.reduce((acc,k)=>acc+(parseInt(e[k])||0),0);
+            return `<tr><td>${e.date}</td>${ACT_KEYS.map(k=>`<td>${parseInt(e[k])||0}</td>`).join('')}<td><b>${rowTot}</b></td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div></div>`;
+}
+
+/* ══════════════════════════════════════
+   DATE RANGE REPORT
+══════════════════════════════════════ */
+function setRptPreset(preset) {
+  const to=todayStr();
+  const froms={week:weekStart(),month:monthStart(),ytd:yearStart()};
+  document.getElementById('rptFrom').value=froms[preset];
+  document.getElementById('rptTo').value=to;
+  renderReport();
+}
+
+function renderReport() {
+  const from=document.getElementById('rptFrom').value;
+  const to=document.getElementById('rptTo').value;
+  let filtered=allEntries;
+  if(from) filtered=filtered.filter(e=>e.date>=from);
+  if(to)   filtered=filtered.filter(e=>e.date<=to);
+
+  const teamS=sum(filtered);
+  const teamTot=totalOf(teamS);
+  const agentsInRange=[...new Set(filtered.map(e=>(e.agent||'').trim()))].filter(Boolean);
+
+  document.getElementById('rptStats').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${agentsInRange.length}</div><div class="stat-lbl">Agents Active</div></div>
+    <div class="stat-card"><div class="stat-val">${filtered.length}</div><div class="stat-lbl">Entries</div></div>
+    <div class="stat-card"><div class="stat-val">${teamTot}</div><div class="stat-lbl">Total Activities</div></div>
+    <div class="stat-card"><div class="stat-val">${teamS.closings}</div><div class="stat-lbl">Closings</div></div>`;
+
+  const agMap={};
+  filtered.forEach(e=>{
+    const n=(e.agent||'').trim(); if(!n) return;
+    if(!agMap[n]) agMap[n]=sum([]);
+    ACT_KEYS.forEach(k=>agMap[n][k]+=(parseInt(e[k])||0));
+  });
+  const rows=Object.entries(agMap).map(([name,s])=>({name,s,total:totalOf(s)})).sort((a,b)=>b.total-a.total);
+
+  document.getElementById('rptBody').innerHTML=rows.length
+    ? rows.map(r=>`<tr><td><b>${r.name}</b></td>${ACT_KEYS.map(k=>`<td>${r.s[k]}</td>`).join('')}<td><b>${r.total}</b></td></tr>`).join('')
+    : `<tr><td colspan="13" class="tbl-empty">No data for this range.</td></tr>`;
+}
+
+/* ══════════════════════════════════════
+   CSV EXPORT
+══════════════════════════════════════ */
+function exportCSV(type) {
+  let rows, headers, filename;
+  const expFrom=document.getElementById('expFrom')?.value;
+  const expTo=document.getElementById('expTo')?.value;
+
+  if(type==='all') {
+    headers=['ID','Agent','Date','Timestamp',...ACT_HEADS];
+    rows=allEntries.map(e=>[e.id,e.agent,e.date,e.timestamp,...ACT_KEYS.map(k=>parseInt(e[k])||0)]);
+    filename='wpr_all_entries.csv';
+  } else if(type==='agents') {
+    headers=['Agent','Entries',...ACT_HEADS,'Total'];
+    const agMap={};
+    allEntries.forEach(e=>{
+      const n=(e.agent||'').trim(); if(!n) return;
+      if(!agMap[n]) agMap[n]={count:0,s:sum([])};
+      agMap[n].count++;
+      ACT_KEYS.forEach(k=>agMap[n].s[k]+=(parseInt(e[k])||0));
+    });
+    rows=Object.entries(agMap).map(([name,d])=>[name,d.count,...ACT_KEYS.map(k=>d.s[k]),totalOf(d.s)]);
+    filename='wpr_agent_summary.csv';
+  } else if(type==='range') {
+    let filtered=allEntries;
+    if(expFrom) filtered=filtered.filter(e=>e.date>=expFrom);
+    if(expTo)   filtered=filtered.filter(e=>e.date<=expTo);
+    headers=['ID','Agent','Date','Timestamp',...ACT_HEADS];
+    rows=filtered.map(e=>[e.id,e.agent,e.date,e.timestamp,...ACT_KEYS.map(k=>parseInt(e[k])||0)]);
+    filename=`wpr_export_${expFrom||'start'}_to_${expTo||'today'}.csv`;
+  }
+
+  const esc=v=>typeof v==='string'&&v.includes(',') ? `"${v}"` : v;
+  const csv=[headers,...rows].map(r=>r.map(esc).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=filename;
+  a.click();
+  toast('✓ CSV downloaded');
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+(async function init() {
+  if(sessionStorage.getItem('wpr_admin')==='1') {
+    await startAdmin();
+  } else {
+    showLoading(false);
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+})();
+</script>
+</body>
+</html>
